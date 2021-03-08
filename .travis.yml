@@ -2,7 +2,7 @@ sudo: required
 
 language: python
 python:
-  - "3.9"
+  - "3.8"
 
 services:
   - docker
@@ -10,4 +10,4 @@ services:
 before_script: pip install docker-compose
 
 script:
-  - docker-compose run --rm app sh -c "python manage.py test && flake8"
+  - docker-compose run --rm app sh -c "python manage.py test && flake9"
