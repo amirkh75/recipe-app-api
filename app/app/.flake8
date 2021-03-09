@@ -2,6 +2,6 @@
 exclude =
   migrations,
   __pycache__,
-  settings.py,
-  manage.py,
+  ./app/settings.py,
+  manage.py
   
