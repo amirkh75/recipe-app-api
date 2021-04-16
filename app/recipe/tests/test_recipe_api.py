@@ -42,7 +42,7 @@ def sample_recipe(user, **params):
     """Create and return a sample recipe"""
     defaults = {
         'title': 'Sample recipe',
-        'time_miniutes': 10,
+        'time_minutes': 10,
         'price': 5.00
     }
     defaults.update(params)
@@ -118,7 +118,7 @@ class PrivateRecipeApiTests(TestCase):
         """Test creating recipe"""
         payload = {
             'title': 'Chocolate cheesecake',
-            'time_miniutes': 30,
+            'time_minutes': 30,
             'price': 5.00
         }
         res = self.client.post(RECIPES_URL, payload)
@@ -135,7 +135,7 @@ class PrivateRecipeApiTests(TestCase):
         payload = {
             'title': 'Avaocado lime chessecake',
             'tags': [tag1.id, tag2.id],
-            'time_miniutes': 60,
+            'time_minutes': 60,
             'price': 20.00
         }
         res = self.client.post(RECIPES_URL, payload)
@@ -154,7 +154,7 @@ class PrivateRecipeApiTests(TestCase):
         payload = {
             'title': 'Thai prawn red curry',
             'ingredients': [ingredient1.id, ingredient2.id],
-            'time_miniutes': 20,
+            'time_minutes': 20,
             'price': 7.00
         }
         res = self.client.post(RECIPES_URL, payload)
@@ -188,7 +188,7 @@ class PrivateRecipeApiTests(TestCase):
         recipe.tags.add(sample_tag(user=self.user))
         payload = {
             'title': 'Spaghetti carbonara',
-            'time_miniutes': 25,
+            'time_minutes': 25,
             'price': 5.00
         }
         url = detail_url(recipe.id)
@@ -196,7 +196,7 @@ class PrivateRecipeApiTests(TestCase):
 
         recipe.refresh_from_db()
         self.assertEqual(recipe.title, payload['title'])
-        self.assertEqual(recipe.time_miniutes, payload['time_miniutes'])
+        self.assertEqual(recipe.time_minutes, payload['time_minutes'])
         self.assertEqual(recipe.price, payload['price'])
         tags = recipe.tags.all()
         self.assertEqual(len(tags), 0)
@@ -237,3 +237,47 @@ class RecipeImageUploadTests(TestCase):
         res = self.client.post(url, {'image': 'no image'}, format='multipart')
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_fiiter_recipe_by_tags(self):
+        """Test returning recipes with specific tags"""
+        recipe1 = sample_recipe(user=self.user, title='Thai vegetable curry')
+        recipe2 = sample_recipe(user=self.user, title='Aubergin with tahini')
+        tag1 = sample_tag(user=self.user, name='Vegan')
+        tag2 = sample_tag(user=self.user, name='Vegetarian')
+        recipe1.tags.add(tag1)
+        recipe2.tags.add(tag2)
+        recipe3 = sample_recipe(user=self.user, title='Fish and chips')
+
+        res = self.client.get(
+            RECIPES_URL,
+            {'tags': f'{tag1.id},{tag2.id}'}
+        )
+
+        serializer1 = RecipeSerializer(recipe1)
+        serializer2 = RecipeSerializer(recipe2)
+        serializer3 = RecipeSerializer(recipe3)
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)
+
+    def test_fiiter_recipe_by_ingredients(self):
+        """Test returning recipes with specific tags"""
+        recipe1 = sample_recipe(user=self.user, title='Thai vegetable curry')
+        recipe2 = sample_recipe(user=self.user, title='Aubergin with tahini')
+        ingredient1 = sample_ingredient(user=self.user, name='Feta cheese')
+        ingredient2 = sample_ingredient(user=self.user, name='Chicken')
+        recipe1.ingredients.add(ingredient1)
+        recipe2.ingredients.add(ingredient2)
+        recipe3 = sample_recipe(user=self.user, title='Fish and chips')
+
+        res = self.client.get(
+            RECIPES_URL,
+            {'ingredients': f'{ingredient1.id},{ingredient2.id}'}
+        )
+
+        serializer1 = RecipeSerializer(recipe1)
+        serializer2 = RecipeSerializer(recipe2)
+        serializer3 = RecipeSerializer(recipe3)
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)

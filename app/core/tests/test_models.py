@@ -73,7 +73,7 @@ class ModelTests(TestCase):
         recipe = models.Recipe.objects.create(
             user=sample_user(),
             title='Steak and mushroom sauce',
-            time_miniutes=5,
+            time_minutes=5,
             price=5.00
         )
 
